@@ -1,4 +1,5 @@
 <?php 
+  include '../../includes/validar_sesion.php';
   include '../php/conexion.php';
 ?>
 <!doctype html>
@@ -14,9 +15,12 @@
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <div class="container-fluid">
-        <a class="navbar-brand" href="home.html">
+        <a class="navbar-brand" href="home.php">
           <i class="bi bi-building-fill fs-3"></i>
         </a>
+        <span class="navbar-text text-white me-3 fs-5">
+          Hola, <?php echo $_SESSION['nombre']; ?>
+        </span>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -25,8 +29,8 @@
             <li class="nav-item"><a class="nav-link" href="home.php">Inicio</a></li>
             <li class="nav-item"><a class="nav-link" href="productos.php">Productos</a></li>
             <li class="nav-item"><a class="nav-link active" href="categorias.php">Categorías</a></li>
-            <li class="nav-item"><a class="nav-link" href="agregarProducto.html">Agregar</a></li>
-            <li class="nav-item"><a class="nav-link text-danger" href="../../includes/sesion.php?action=logout"><i class="bi bi-box-arrow-right"></i> Salir</a></li>
+            <li class="nav-item"><a class="nav-link" href="agregarProducto.php">Agregar</a></li>
+            <li class="nav-item"><a class="nav-link text-danger" href="../php/logout.php"><i class="bi bi-box-arrow-right"></i> Salir</a></li>
           </ul>
         </div>
       </div>
@@ -85,11 +89,50 @@
         </div>
       </div>
 
+      <!-- Barra de búsqueda y filtros -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="buscarCategoria" placeholder="Buscar por nombre de categoría...">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <select class="form-select" id="filtroProductos">
+                <option value="">Todos los niveles</option>
+                <option value="sin-productos">Sin productos (0)</option>
+                <option value="pocos">Pocos productos (1-3)</option>
+                <option value="moderado">Moderado (4-7)</option>
+                <option value="muchos">Muchos productos (8+)</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select class="form-select" id="filtroStock">
+                <option value="">Todo el stock</option>
+                <option value="sin-stock">Sin stock</option>
+                <option value="con-stock">Con stock</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">
-          <h5 class="mb-0">Lista de Categorías</h5>
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Lista de Categorías</h5>
+            <button class="btn btn-outline-secondary btn-sm" id="limpiarFiltrosCategorias">
+              <i class="bi bi-x-circle"></i> Limpiar filtros
+            </button>
+          </div>
         </div>
         <div class="card-body">
+          <!-- Contador de resultados -->
+          <div class="mb-3">
+            <small class="text-muted" id="contadorResultadosCategorias">Mostrando todas las categorías</small>
+          </div>
           <?php
             // Consulta para obtener categorías con contador de productos
             $consultaCategorias = "
@@ -100,14 +143,14 @@
               FROM Categorias c 
               LEFT JOIN Productos p ON c.id = p.id_categoria 
               GROUP BY c.id, c.nombre 
-              ORDER BY c.nombre ASC
+              ORDER BY c.id ASC
             ";
             $stmtCategorias = mysqli_query($conexion, $consultaCategorias);
 
             if(mysqli_num_rows($stmtCategorias) > 0):
           ?>
             <div class="table-responsive">
-              <table class="table table-hover">
+              <table class="table table-hover" id="tablaCategorias">
                 <thead class="table-light">
                   <tr>
                     <th>ID</th>
@@ -132,7 +175,7 @@
                         $badgeClass = 'bg-success';
                     }
                   ?>
-                    <tr>
+                    <tr data-productos="<?php echo $categoria['total_productos']; ?>" data-stock="<?php echo $categoria['total_stock']; ?>">
                       <td><?php echo $categoria['id']; ?></td>
                       <td>
                         <strong><?php echo $categoria['nombre']; ?></strong>
@@ -159,13 +202,13 @@
                       </td>
                       <td>
                         <div class="btn-group btn-group-sm" role="group">
-                          <button type="button" class="btn btn-outline-primary" title="Ver productos">
+                          <button type="button" class="btn btn-outline-primary btn-ver-productos" data-id="<?php echo $categoria['id']; ?>" data-nombre="<?php echo htmlspecialchars($categoria['nombre']); ?>" title="Ver productos">
                             <i class="bi bi-eye"></i>
                           </button>
-                          <button type="button" class="btn btn-outline-warning" title="Editar">
+                          <button type="button" class="btn btn-outline-warning btn-editar-categoria" data-id="<?php echo $categoria['id']; ?>" title="Editar">
                             <i class="bi bi-pencil"></i>
                           </button>
-                          <button type="button" class="btn btn-outline-danger" title="Eliminar">
+                          <button type="button" class="btn btn-outline-danger btn-eliminar-categoria" data-id="<?php echo $categoria['id']; ?>" data-nombre="<?php echo htmlspecialchars($categoria['nombre']); ?>" data-productos="<?php echo $categoria['total_productos']; ?>" title="Eliminar">
                             <i class="bi bi-trash"></i>
                           </button>
                         </div>
@@ -194,17 +237,21 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-              <form id="formAgregarCategoria">
+              <form id="formAgregarCategoria" method="POST" action="../php/guardarCategoria.php" novalidate>
                 <div class="mb-3">
                   <label for="nombreCategoria" class="form-label">Nombre de la Categoría</label>
-                  <input type="text" class="form-control" id="nombreCategoria" name="nombre" required>
+                  <input type="text" class="form-control" id="nombreCategoria" name="nombre">
+                  <p class="alert alert-danger mt-2" style="display:none" id="nomCat">El nombre de la categoría es obligatorio y debe tener al menos 2 caracteres</p>
                   <div class="form-text">Ingresa un nombre descriptivo para la categoría</div>
                 </div>
+                
+                <!-- Mensaje de éxito -->
+                <p class="alert alert-success mt-3" style="display:none" id="btnCat">Categoría guardada exitosamente. Redirigiendo...</p>
               </form>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" form="formAgregarCategoria" class="btn btn-success">Guardar Categoría</button>
+              <button type="button" id="btnGuardarCategoria" class="btn btn-success">Guardar Categoría</button>
             </div>
           </div>
         </div>
@@ -212,5 +259,6 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/categorias.js"></script>
   </body>
 </html>

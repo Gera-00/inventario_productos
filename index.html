@@ -14,6 +14,12 @@
           <div class="card">
             <div class="card-header text-center">Iniciar sesión</div>
             <div class="card-body">
+              <!-- Mensaje de logout exitoso -->
+              <div id="logoutMessage" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+                <i class="bi bi-check-circle"></i> Sesión cerrada correctamente
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+              
               <form id="loginForm" method="post" action="src/php/login.php" novalidate>
                 <div class="mb-3">
                   <label for="usuario" class="form-label">Usuario / Email</label>
@@ -36,18 +42,6 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      // Clien-side simple validation
-      document.addEventListener('DOMContentLoaded', function(){
-        var form = document.getElementById('loginForm');
-        form.addEventListener('submit', function(e){
-          if(!form.checkValidity()){
-            e.preventDefault();
-            e.stopPropagation();
-          }
-          form.classList.add('was-validated');
-        });
-      });
-    </script>
+    <script src="assets/js/login.js"></script>
   </body>
 </html>

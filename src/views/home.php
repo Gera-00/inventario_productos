@@ -1,4 +1,5 @@
 <?php
+    include '../../includes/validar_sesion.php';
     include '../php/conexion.php';
 ?>
 <!DOCTYPE html>
@@ -21,9 +22,12 @@
     <body class="d-flex flex-column min-vh-100">
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container-fluid">
-                <a class="navbar-brand" href="home.html">
+                <a class="navbar-brand" href="home.php">
                     <i class="bi bi-building-fill fs-3"></i>
                 </a>
+                <span class="navbar-text text-white me-3 fs-5">
+                    Hola, <?php echo $_SESSION['nombre']; ?>
+                </span>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -32,8 +36,8 @@
                         <li class="nav-item"><a class="nav-link" href="home.php">Inicio</a></li>
                         <li class="nav-item"><a class="nav-link" href="productos.php">Productos</a></li>
                         <li class="nav-item"><a class="nav-link" href="categorias.php">Categorías</a></li>
-                        <li class="nav-item"><a class="nav-link" href="agregarProducto.html">Agregar</a></li>
-                        <li class="nav-item"><a class="nav-link text-danger" href="../../includes/sesion.php?action=logout"><i class="bi bi-box-arrow-right"></i> Salir</a></li>
+                        <li class="nav-item"><a class="nav-link" href="agregarProducto.php">Agregar</a></li>
+                        <li class="nav-item"><a class="nav-link text-danger" href="../php/logout.php"><i class="bi bi-box-arrow-right"></i> Salir</a></li>
                     </ul>
                 </div>
             </div>
@@ -174,13 +178,13 @@
                     <div class="card">
                         <div class="card-header">Atajos</div>
                         <div class="card-body d-grid gap-2">
-                            <a href="agregarProducto.html" class="btn btn-success">
+                            <a href="agregarProducto.php" class="btn btn-success">
                                 <i class="bi bi-plus-circle"></i> Agregar Producto
                             </a>
                             <a href="productos.php" class="btn btn-outline-primary">
                                 <i class="bi bi-list-ul"></i> Ver Productos
                             </a>
-                            <a href="categorias.html" class="btn btn-outline-secondary">
+                            <a href="categorias.php" class="btn btn-outline-secondary">
                                 <i class="bi bi-tags"></i> Gestionar Categorías
                             </a>
                         </div>
